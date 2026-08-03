@@ -19,7 +19,7 @@ async function createHubJwt(permissions = ['lis-perm-cattle-move-read']) {
   })
     .setProtectedHeader({ alg: 'HS256' })
     .setSubject('test-user')
-    .setIssuer(config.get('auth.hubJwt.issuer'))
+    .setIssuer(config.get('auth.hubOrigins')[0])
     .setAudience(config.get('auth.hubJwt.audience'))
     .setIssuedAt()
     .setExpirationTime('1h')
@@ -63,7 +63,7 @@ describe('#homeController', () => {
 
     expect(statusCode).toBe(302)
     expect(headers.location).toContain(
-      'http://localhost:3000/auth/login?returnUrl='
+      `${config.get('auth.hubOrigins')[0]}/auth/login?returnUrl=`
     )
   })
 
