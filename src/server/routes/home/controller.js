@@ -1,6 +1,6 @@
-import { buildMicrositePath } from '@livestock/ui-services'
-import { taxonomy } from '@livestock/taxonomy-move'
-import { species } from '@livestock/species-cattle'
+import { buildMicrositePath } from '@defra/lis-infra-ui-services'
+import { taxonomy } from '@defra/lis-taxonomy-move'
+import { species } from '@defra/lis-species-cattle'
 
 export const homeController = {
   handler(request, h) {
@@ -21,9 +21,9 @@ export const homeController = {
       taxonomy,
       species,
       signedInAs,
-      directPort: 3204,
+      directPort: 3202,
       hubPath: buildMicrositePath(taxonomy.id, species.id),
-      apiEndpoint: 'http://localhost:3000/api/species/cattle/taxonomies/move'
+      apiEndpoint: 'http://localhost:3227/api/species/cattle/taxonomies/move'
     })
   }
 }

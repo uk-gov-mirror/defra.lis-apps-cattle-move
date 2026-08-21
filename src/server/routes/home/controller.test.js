@@ -1,29 +1,27 @@
-import { TextEncoder } from 'node:util'
-
-import { SignJWT } from 'jose'
-import { statusCodes } from '@livestock/ui-services/status-codes'
+import { statusCodes } from '@defra/lis-infra-ui-services/status-codes'
+import { issueHubJwt } from '@defra/lis-hubs-infra-access/auth'
 
 import { config } from '#config/config.js'
 import { createServer } from '#server/server.js'
+import { homeController } from './controller.js'
 
-const encoder = new TextEncoder()
-
-async function createHubJwt(permissions = ['lis-perm-cattle-move-read']) {
-  return new SignJWT({
-    email: 'test.user@example.com',
-    firstName: 'Test',
-    lastName: 'User',
-    roles: [],
-    permissions,
-    serviceId: 'test-service'
-  })
-    .setProtectedHeader({ alg: 'HS256' })
-    .setSubject('test-user')
-    .setIssuer(config.get('auth.hubOrigins')[0])
-    .setAudience(config.get('auth.hubJwt.audience'))
-    .setIssuedAt()
-    .setExpirationTime('1h')
-    .sign(encoder.encode(config.get('auth.hubJwt.secret')))
+async function createHubJwt(roles = ['lis-role-cattle-move-read']) {
+  return issueHubJwt(
+    {
+      sub: 'test-user',
+      email: 'test.user@example.com',
+      firstName: 'Test',
+      lastName: 'User',
+      roles,
+      serviceId: 'test-service'
+    },
+    {
+      secret: config.get('auth.hubJwt.secret'),
+      issuer: config.get('auth.hubOrigins')[0],
+      audience: config.get('auth.hubJwt.audience'),
+      ttlSeconds: config.get('auth.hubJwt.ttlSeconds')
+    }
+  )
 }
 
 describe('#homeController', () => {
@@ -68,7 +66,7 @@ describe('#homeController', () => {
   })
 
   test('Should return forbidden when the user lacks the cattle move permission', async () => {
-    const jwt = await createHubJwt(['lis-perm-cattle-read'])
+    const jwt = await createHubJwt(['lis-role-cattle-read'])
     const { statusCode, result } = await server.inject({
       method: 'GET',
       url: '/',
@@ -78,6 +76,21 @@ describe('#homeController', () => {
     })
 
     expect(statusCode).toBe(statusCodes.forbidden)
-    expect(result).toEqual({ message: 'Forbidden' })
+    expect(result).toEqual({ message: 'Module access denied' })
+  })
+
+  test.each([
+    [{ firstName: 'Ada', lastName: 'Lovelace' }, 'Ada Lovelace'],
+    [{ sub: 'subject-123' }, 'subject-123'],
+    [{}, 'Authenticated user']
+  ])('uses the available signed-in identity', (hubAuth, signedInAs) => {
+    const view = vi.fn()
+
+    homeController.handler({ app: { hubAuth } }, { view })
+
+    expect(view).toHaveBeenCalledWith(
+      'home/index',
+      expect.objectContaining({ signedInAs })
+    )
   })
 })
