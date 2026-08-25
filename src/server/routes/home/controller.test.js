@@ -5,14 +5,16 @@ import { config } from '#config/config.js'
 import { createServer } from '#server/server.js'
 import { homeController } from './controller.js'
 
-async function createHubJwt(roles = ['lis-role-cattle-move-read']) {
+async function createHubJwt(
+  statements = [{ role: 'lis-role-cattle-move-read', cphs: '*' }]
+) {
   return issueHubJwt(
     {
       sub: 'test-user',
       email: 'test.user@example.com',
       firstName: 'Test',
       lastName: 'User',
-      roles,
+      statements,
       serviceId: 'test-service'
     },
     {
@@ -66,7 +68,9 @@ describe('#homeController', () => {
   })
 
   test('Should return forbidden when the user lacks the cattle move permission', async () => {
-    const jwt = await createHubJwt(['lis-role-cattle-read'])
+    const jwt = await createHubJwt([
+      { role: 'lis-role-cattle-read', cphs: '*' }
+    ])
     const { statusCode, result } = await server.inject({
       method: 'GET',
       url: '/',
