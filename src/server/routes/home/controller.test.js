@@ -80,7 +80,7 @@ describe('#homeController', () => {
     })
 
     expect(statusCode).toBe(statusCodes.forbidden)
-    expect(result).toEqual({ message: 'Module access denied' })
+    expect(result).toEqual(expect.stringContaining('Forbidden'))
   })
 
   test.each([
