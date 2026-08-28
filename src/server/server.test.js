@@ -6,9 +6,9 @@ afterEach(() => {
   delete process.env.LOG_FORMAT
 })
 
-test('server.js maps LOG_FORMAT=pino-pretty onto the logger pretty-print format', async () => {
+test('server.js maps LOG_FORMAT=pretty onto the logger pretty-print format', async () => {
   // Arrange
-  process.env.LOG_FORMAT = 'pino-pretty'
+  process.env.LOG_FORMAT = 'pretty'
   vi.resetModules()
 
   // Act
