@@ -51,7 +51,8 @@ describe('#homeController', () => {
 
     const { result, statusCode } = await server.inject(request)
 
-    expect(result).toEqual(expect.stringContaining('Move for Cattle |'))
+    expect(result).toEqual(expect.stringContaining('Move for Cattle'))
+    expect(result).toEqual(expect.stringContaining('Livestock Information'))
     expect(statusCode).toBe(statusCodes.ok)
   })
 
